@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+'rest_framework'
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'panel',
     'proyectos',
     'reportes', 
-    
+
 ]
 
 MIDDLEWARE = [
