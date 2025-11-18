@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<h2>Listado de Proyectos</h2>
+
+<a href="{% url 'crear_proyecto' %}" class="btn btn-primary">Crear Proyecto</a>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Fechas</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for p in proyectos %}
+        <tr>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.fecha_inicio }} → {{ p.fecha_fin }}</td>
+            <td>
+                <a href="{% url 'editar_proyecto' p.id %}" class="btn btn-warning btn-sm">Editar</a>
+                <a href="{% url 'eliminar_proyecto' p.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
