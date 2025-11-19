@@ -8,9 +8,11 @@
         <h1><i class="bi bi-list-task"></i> Todas las Tareas</h1>
     </div>
     <div class="col text-end">
-        <a href="{% url 'proyectos:tarea_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nueva Tarea
-        </a>
+        {% if user.role == 'admin' %}
+            <a href="{% url 'proyectos:tarea_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Tarea
+            </a>
+        {% endif %}
     </div>
 </div>
 
@@ -95,12 +97,16 @@
                                 </td>
                                 <td>{{ tarea.fecha_vencimiento }}</td>
                                 <td>
-                                    <a href="{% url 'proyectos:tarea_update' tarea.pk %}" class="btn btn-sm btn-warning">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'proyectos:tarea_delete' tarea.pk %}" class="btn btn-sm btn-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                    {% if user.role == 'admin' or tarea.asignado_a == user %}
+                                        <a href="{% url 'proyectos:tarea_update' tarea.pk %}" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    {% endif %}
+                                    {% if user.role == 'admin' %}
+                                        <a href="{% url 'proyectos:tarea_delete' tarea.pk %}" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}

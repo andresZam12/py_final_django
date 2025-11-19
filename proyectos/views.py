@@ -1,13 +1,46 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.http import HttpResponseForbidden
 
 from .models import Proyecto, Tarea, Comentario, Historial
 from .forms import ProyectoForm, TareaForm, ComentarioForm, BusquedaAvanzadaForm
+
+
+# ============ MIXINS DE PERMISOS ============
+
+class AdminRequiredMixin(UserPassesTestMixin):
+    """
+    Mixin que verifica que el usuario sea administrador
+    """
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.role == 'admin'
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'No tienes permisos para realizar esta acción. Solo administradores.')
+        return redirect('panel:dashboard')
+
+
+class TareaOwnerOrAdminMixin(UserPassesTestMixin):
+    """
+    Mixin que verifica que el usuario sea el asignado de la tarea o un administrador
+    """
+    def test_func(self):
+        if not self.request.user.is_authenticated:
+            return False
+        
+        tarea = self.get_object()
+        # Admin puede todo, member solo sus tareas asignadas
+        return (self.request.user.role == 'admin' or 
+                tarea.asignado_a == self.request.user)
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'No tienes permisos para editar esta tarea.')
+        return redirect('proyectos:tarea_list')
 
 
 # ============ VISTAS DE PROYECTOS ============
@@ -56,9 +89,9 @@ class ProyectoDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class ProyectoCreateView(LoginRequiredMixin, CreateView):
+class ProyectoCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
     """
-    Crear nuevo proyecto
+    Crear nuevo proyecto - SOLO ADMINS
     """
     model = Proyecto
     form_class = ProyectoForm
@@ -72,9 +105,9 @@ class ProyectoCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ProyectoUpdateView(LoginRequiredMixin, UpdateView):
+class ProyectoUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
     """
-    Actualizar proyecto existente
+    Actualizar proyecto existente - SOLO ADMINS
     """
     model = Proyecto
     form_class = ProyectoForm
@@ -86,9 +119,9 @@ class ProyectoUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ProyectoDeleteView(LoginRequiredMixin, DeleteView):
+class ProyectoDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
     """
-    Eliminar proyecto
+    Eliminar proyecto - SOLO ADMINS
     """
     model = Proyecto
     template_name = 'proyectos/proyecto_confirm_delete.html'
@@ -167,9 +200,9 @@ class TareaDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class TareaCreateView(LoginRequiredMixin, CreateView):
+class TareaCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
     """
-    Crear nueva tarea
+    Crear nueva tarea - SOLO ADMINS
     """
     model = Tarea
     form_class = TareaForm
@@ -193,9 +226,9 @@ class TareaCreateView(LoginRequiredMixin, CreateView):
         return initial
 
 
-class TareaUpdateView(LoginRequiredMixin, UpdateView):
+class TareaUpdateView(LoginRequiredMixin, TareaOwnerOrAdminMixin, UpdateView):
     """
-    Actualizar tarea existente
+    Actualizar tarea existente - Solo asignado o admin
     """
     model = Tarea
     form_class = TareaForm
@@ -209,9 +242,9 @@ class TareaUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class TareaDeleteView(LoginRequiredMixin, DeleteView):
+class TareaDeleteView(LoginRequiredMixin, AdminRequiredMixin, DeleteView):
     """
-    Eliminar tarea
+    Eliminar tarea - SOLO ADMINS
     """
     model = Tarea
     template_name = 'proyectos/tarea_confirm_delete.html'

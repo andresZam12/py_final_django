@@ -9,9 +9,11 @@
         <a href="{% url 'proyectos:proyecto_list' %}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Volver
         </a>
-        <a href="{% url 'proyectos:proyecto_update' proyecto.pk %}" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Editar
-        </a>
+        {% if user.role == 'admin' %}
+            <a href="{% url 'proyectos:proyecto_update' proyecto.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+        {% endif %}
         <a href="{% url 'reportes:proyecto_pdf' proyecto.pk %}" class="btn btn-danger">
             <i class="bi bi-file-pdf"></i> Descargar PDF
         </a>

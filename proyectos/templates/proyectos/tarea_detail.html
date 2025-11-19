@@ -9,12 +9,16 @@
         <a href="{% url 'proyectos:tarea_list' %}" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Volver
         </a>
-        <a href="{% url 'proyectos:tarea_update' tarea.pk %}" class="btn btn-warning">
-            <i class="bi bi-pencil"></i> Editar
-        </a>
-        <a href="{% url 'proyectos:tarea_delete' tarea.pk %}" class="btn btn-danger">
-            <i class="bi bi-trash"></i> Eliminar
-        </a>
+        {% if user.role == 'admin' or tarea.asignado_a == user %}
+            <a href="{% url 'proyectos:tarea_update' tarea.pk %}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+        {% endif %}
+        {% if user.role == 'admin' %}
+            <a href="{% url 'proyectos:tarea_delete' tarea.pk %}" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Eliminar
+            </a>
+        {% endif %}
     </div>
 </div>
 
