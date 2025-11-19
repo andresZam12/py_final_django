@@ -27,7 +27,7 @@
             <div class="card-body">
                 <h5 class="card-title">Tareas Completadas</h5>
                 <p class="display-4">{{ tareas_completadas }}</p>
-                <small>de {{ total_tareas }} tareas</small>
+                <a href="{% url 'proyectos:tarea_list' %}?estado=completada" class="text-white">Ver <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>
@@ -86,17 +86,29 @@
                 <h5><i class="bi bi-bell"></i> Notificaciones Recientes</h5>
             </div>
             <div class="card-body">
-                {% if notificaciones %}
+                {% if notificaciones_recientes %}
                     <div class="list-group">
-                        {% for notificacion in notificaciones %}
-                            <div class="list-group-item {% if not notificacion.leido %}list-group-item-warning{% endif %}">
+                        {% for notificacion in notificaciones_recientes %}
+                            <div class="list-group-item {% if not notificacion.leida %}list-group-item-warning{% endif %}">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <p class="mb-1">{{ notificacion.mensaje }}</p>
-                                    <small>{{ notificacion.fecha_creacion|timesince }} atrás</small>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-bell-fill"></i> {{ notificacion.mensaje }}
+                                    </h6>
+                                    <small class="text-muted">{{ notificacion.fecha_creacion|timesince }} atrás</small>
                                 </div>
+                                {% if notificacion.tarea %}
+                                    <small class="text-muted">
+                                        Tarea: <a href="{% url 'proyectos:tarea_detail' notificacion.tarea.pk %}">{{ notificacion.tarea.titulo }}</a>
+                                    </small>
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>
+                    {% if notificaciones_count > 5 %}
+                        <div class="text-center mt-3">
+                            <small class="text-muted">{{ notificaciones_count }} notificaciones en total</small>
+                        </div>
+                    {% endif %}
                 {% else %}
                     <p class="text-muted">No hay notificaciones recientes</p>
                 {% endif %}

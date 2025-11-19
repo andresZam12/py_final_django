@@ -103,6 +103,25 @@ class TareaForm(forms.ModelForm):
         return cleaned_data
 
 
+class TareaMemberForm(forms.ModelForm):
+    """
+    Formulario simplificado para members - Solo pueden cambiar el estado
+    """
+    class Meta:
+        model = Tarea
+        fields = ['estado']
+        widgets = {
+            'estado': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['estado'].label = 'Estado de la tarea'
+        self.fields['estado'].help_text = 'Solo puedes cambiar el estado de tu tarea asignada'
+
+
 class ComentarioForm(forms.ModelForm):
     """
     Formulario para agregar comentarios a tareas

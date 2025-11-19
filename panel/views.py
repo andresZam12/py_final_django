@@ -77,6 +77,41 @@ def dashboard(request):
         'alta': Tarea.objects.filter(prioridad='alta').count(),
     }
     
+    # Proyectos por mes (últimos 6 meses) para gráfica
+    import json
+    from django.db.models.functions import TruncMonth
+    seis_meses_atras = timezone.now() - timedelta(days=180)
+    proyectos_mensuales = Proyecto.objects.filter(
+        fecha_creacion__gte=seis_meses_atras
+    ).annotate(
+        mes=TruncMonth('fecha_creacion')
+    ).values('mes').annotate(
+        total=Count('id')
+    ).order_by('mes')
+    
+    # Preparar datos para Chart.js
+    meses_labels = []
+    meses_data = []
+    meses_nombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    
+    if proyectos_mensuales:
+        for item in proyectos_mensuales:
+            mes_num = item['mes'].month - 1
+            anio = item['mes'].year
+            mes_label = f"{meses_nombres[mes_num]} {anio}"
+            meses_labels.append(mes_label)
+            meses_data.append(item['total'])
+    else:
+        # Si no hay datos, mostrar mes actual con 0
+        mes_actual = timezone.now().month - 1
+        anio_actual = timezone.now().year
+        meses_labels.append(f"{meses_nombres[mes_actual]} {anio_actual}")
+        meses_data.append(0)
+    
+    proyectos_por_mes_labels = json.dumps(meses_labels)
+    proyectos_por_mes_data = json.dumps(meses_data)
+    
     context = {
         # Estadísticas
         'total_proyectos': total_proyectos,
@@ -98,6 +133,8 @@ def dashboard(request):
         # Datos para gráficos (JSON)
         'tareas_por_estado': tareas_por_estado,
         'tareas_por_prioridad': tareas_por_prioridad,
+        'proyectos_por_mes_labels': proyectos_por_mes_labels,
+        'proyectos_por_mes_data': proyectos_por_mes_data,
     }
     
     return render(request, 'panel/home.html', context)

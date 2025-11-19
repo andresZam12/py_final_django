@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.http import HttpResponseForbidden
 
 from .models import Proyecto, Tarea, Comentario, Historial
-from .forms import ProyectoForm, TareaForm, ComentarioForm, BusquedaAvanzadaForm
+from .forms import ProyectoForm, TareaForm, TareaMemberForm, ComentarioForm, BusquedaAvanzadaForm
 
 
 # ============ MIXINS DE PERMISOS ============
@@ -56,6 +56,15 @@ class ProyectoListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Members solo ven proyectos donde tienen tareas asignadas
+        if user.role == 'member':
+            # Obtener IDs de proyectos donde el usuario tiene tareas asignadas
+            proyectos_ids = Tarea.objects.filter(asignado_a=user).values_list('proyecto_id', flat=True).distinct()
+            queryset = queryset.filter(id__in=proyectos_ids)
+        
+        # Admins ven todos
         busqueda = self.request.GET.get('busqueda', '')
         
         if busqueda:
@@ -79,6 +88,11 @@ class ProyectoDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         proyecto = self.get_object()
         tareas = proyecto.tareas.all()
+        
+        # Members solo ven sus tareas asignadas
+        if self.request.user.role == 'member':
+            tareas = tareas.filter(asignado_a=self.request.user)
+        
         context['tareas'] = tareas.order_by('-fecha_creacion')
         context['progreso'] = proyecto.calcular_progreso()
         context['esta_atrasado'] = proyecto.esta_atrasado()
@@ -145,6 +159,11 @@ class TareaListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         queryset = super().get_queryset()
+        user = self.request.user
+        
+        # Members solo ven tareas asignadas a ellos
+        if user.role == 'member':
+            queryset = queryset.filter(asignado_a=user)
         
         # Filtros del formulario de búsqueda avanzada
         busqueda = self.request.GET.get('busqueda', '')
@@ -216,23 +235,29 @@ class TareaCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
         form.instance.creado_por = self.request.user
         messages.success(self.request, 'Tarea creada exitosamente')
         return super().form_valid(form)
-    
-    def get_initial(self):
-        initial = super().get_initial()
-        # Si viene desde un proyecto específico, pre-seleccionarlo
-        proyecto_id = self.request.GET.get('proyecto')
-        if proyecto_id:
-            initial['proyecto'] = proyecto_id
-        return initial
 
 
 class TareaUpdateView(LoginRequiredMixin, TareaOwnerOrAdminMixin, UpdateView):
     """
     Actualizar tarea existente - Solo asignado o admin
+    Members: solo pueden cambiar estado
+    Admins: pueden cambiar todo
     """
     model = Tarea
-    form_class = TareaForm
-    template_name = 'proyectos/tarea_form.html'
+    
+    def get_template_names(self):
+        # Template diferente para members
+        if self.request.user.role == 'member':
+            return ['proyectos/tarea_member_form.html']
+        return ['proyectos/tarea_form.html']
+    
+    def get_form_class(self):
+        # Si es admin, puede editar todo
+        if self.request.user.role == 'admin':
+            return TareaForm
+        # Si es member, solo puede cambiar el estado
+        else:
+            return TareaMemberForm
     
     def get_success_url(self):
         return reverse_lazy('proyectos:tarea_detail', kwargs={'pk': self.object.pk})
