@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tarea.titulo }} - Detalle{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-list-check"></i> {{ tarea.titulo }}</h1>
+        <a href="{% url 'proyectos:tarea_list' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+        <a href="{% url 'proyectos:tarea_update' tarea.pk %}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        <a href="{% url 'proyectos:tarea_delete' tarea.pk %}" class="btn btn-danger">
+            <i class="bi bi-trash"></i> Eliminar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Información de la tarea -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h5>Información de la Tarea</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Descripción:</strong></p>
+                <p>{{ tarea.descripcion }}</p>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Proyecto:</strong> 
+                            <a href="{% url 'proyectos:proyecto_detail' tarea.proyecto.pk %}">
+                                {{ tarea.proyecto.nombre }}
+                            </a>
+                        </p>
+                        <p><strong>Asignado a:</strong> {{ tarea.asignado_a|default:"Sin asignar" }}</p>
+                        <p><strong>Fecha Vencimiento:</strong> {{ tarea.fecha_vencimiento }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Estado:</strong> 
+                            {% if tarea.estado == 'completada' %}
+                                <span class="badge bg-success">{{ tarea.get_estado_display }}</span>
+                            {% elif tarea.estado == 'en_progreso' %}
+                                <span class="badge bg-warning">{{ tarea.get_estado_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ tarea.get_estado_display }}</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Prioridad:</strong> 
+                            {% if tarea.prioridad == 'alta' %}
+                                <span class="badge bg-danger">{{ tarea.get_prioridad_display }}</span>
+                            {% elif tarea.prioridad == 'media' %}
+                                <span class="badge bg-warning">{{ tarea.get_prioridad_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ tarea.get_prioridad_display }}</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Fecha Creación:</strong> {{ tarea.fecha_creacion }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comentarios -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="bi bi-chat-left-text"></i> Comentarios</h5>
+            </div>
+            <div class="card-body">
+                {% if comentarios %}
+                    {% for comentario in comentarios %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <h6>{{ comentario.autor.username }}</h6>
+                                    <small class="text-muted">{{ comentario.fecha_creacion }}</small>
+                                </div>
+                                <p class="mb-0">{{ comentario.contenido }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No hay comentarios aún</p>
+                {% endif %}
+                
+                <hr>
+                
+                <h6>Agregar Comentario</h6>
+                <form method="post" action="{% url 'proyectos:agregar_comentario' tarea.pk %}">
+                    {% csrf_token %}
+                    {{ comentario_form.contenido }}
+                    <button type="submit" class="btn btn-primary mt-2">
+                        <i class="bi bi-send"></i> Enviar Comentario
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Historial -->
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5><i class="bi bi-clock-history"></i> Historial de Cambios</h5>
+            </div>
+            <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                {% if historial %}
+                    <ul class="list-group list-group-flush">
+                        {% for registro in historial %}
+                            <li class="list-group-item">
+                                <small class="text-muted">{{ registro.fecha|date:"d/m/Y H:i" }}</small>
+                                <p class="mb-1"><strong>{{ registro.usuario.username }}</strong></p>
+                                <p class="mb-0 text-muted small">{{ registro.accion }}: {{ registro.descripcion }}</p>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No hay historial disponible</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

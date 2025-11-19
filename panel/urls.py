@@ -4,5 +4,6 @@ from . import views
 app_name = 'panel'
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('', views.dashboard, name='home'),
+    path('estadisticas/', views.estadisticas_json, name='estadisticas_json'),
 ]

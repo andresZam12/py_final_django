@@ -1,8 +1,162 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard - Control de Proyectos{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Dashboard</h1>
-<p>Funciona el proyecto base. Aquí luego pondremos los gráficos.</p>
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <p class="text-muted">Vista general del sistema de proyectos y tareas</p>
+    </div>
+</div>
+
+<!-- Tarjetas de estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow">
+            <div class="card-body">
+                <h5 class="card-title">Total Proyectos</h5>
+                <p class="display-4">{{ total_proyectos }}</p>
+                <a href="{% url 'proyectos:proyecto_list' %}" class="text-white">Ver todos <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow">
+            <div class="card-body">
+                <h5 class="card-title">Tareas Completadas</h5>
+                <p class="display-4">{{ tareas_completadas }}</p>
+                <small>de {{ total_tareas }} tareas</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning shadow">
+            <div class="card-body">
+                <h5 class="card-title">En Progreso</h5>
+                <p class="display-4">{{ tareas_en_progreso }}</p>
+                <a href="{% url 'proyectos:tarea_list' %}?estado=en_progreso" class="text-white">Ver <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-danger shadow">
+            <div class="card-body">
+                <h5 class="card-title">Pendientes</h5>
+                <p class="display-4">{{ tareas_pendientes }}</p>
+                <a href="{% url 'proyectos:tarea_list' %}?estado=pendiente" class="text-white">Ver <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficas -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="bi bi-pie-chart"></i> Tareas por Estado</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="tareasEstadoChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5><i class="bi bi-bar-chart"></i> Proyectos por Mes</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="proyectosMesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notificaciones recientes -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5><i class="bi bi-bell"></i> Notificaciones Recientes</h5>
+            </div>
+            <div class="card-body">
+                {% if notificaciones %}
+                    <div class="list-group">
+                        {% for notificacion in notificaciones %}
+                            <div class="list-group-item {% if not notificacion.leido %}list-group-item-warning{% endif %}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <p class="mb-1">{{ notificacion.mensaje }}</p>
+                                    <small>{{ notificacion.fecha_creacion|timesince }} atrás</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No hay notificaciones recientes</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Datos desde el backend
+    const tareasEstado = {
+        labels: ['Pendientes', 'En Progreso', 'Completadas'],
+        datasets: [{
+            data: [{{ tareas_pendientes }}, {{ tareas_en_progreso }}, {{ tareas_completadas }}],
+            backgroundColor: ['#dc3545', '#ffc107', '#198754']
+        }]
+    };
+    
+    const proyectosMes = {
+        labels: {{ proyectos_por_mes_labels|safe }},
+        datasets: [{
+            label: 'Proyectos',
+            data: {{ proyectos_por_mes_data|safe }},
+            backgroundColor: '#0d6efd'
+        }]
+    };
+    
+    // Gráfica de pastel - Tareas por estado
+    const ctxPie = document.getElementById('tareasEstadoChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: tareasEstado,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+    
+    // Gráfica de barras - Proyectos por mes
+    const ctxBar = document.getElementById('proyectosMesChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: proyectosMes,
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

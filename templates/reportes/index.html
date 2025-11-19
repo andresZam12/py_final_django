@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Reportes - Control de Proyectos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1><i class="bi bi-file-earmark-pdf"></i> Reportes y Exportaciones</h1>
+        <p class="text-muted">Genera reportes en PDF o Excel de tus proyectos y tareas</p>
+    </div>
+</div>
+
+<!-- Opciones de reportes -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5><i class="bi bi-file-pdf"></i> Reportes PDF</h5>
+            </div>
+            <div class="card-body">
+                <h6>Reporte Individual de Proyecto</h6>
+                <p class="text-muted">Genera un reporte PDF completo de un proyecto específico con todas sus tareas</p>
+                
+                <form method="get" action="{% url 'reportes:proyecto_pdf' 1 %}" class="mb-3">
+                    <div class="input-group">
+                        <select name="proyecto_id" class="form-select" required onchange="this.form.action = '/reportes/proyecto/' + this.value + '/pdf/'">
+                            <option value="">Selecciona un proyecto...</option>
+                            {% for proyecto in proyectos %}
+                                <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-danger" type="submit">
+                            <i class="bi bi-download"></i> Descargar PDF
+                        </button>
+                    </div>
+                </form>
+                
+                <p class="text-muted">
+                    <i class="bi bi-info-circle"></i> El PDF incluye información completa del proyecto, estadísticas y listado de tareas.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5><i class="bi bi-file-earmark-excel"></i> Reportes Excel</h5>
+            </div>
+            <div class="card-body">
+                <h6>Reporte de Tareas</h6>
+                <p class="text-muted">Exporta todas las tareas a Excel con filtros opcionales</p>
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reportes:tareas_excel' %}" class="btn btn-success">
+                        <i class="bi bi-download"></i> Descargar Todas las Tareas
+                    </a>
+                    
+                    <a href="{% url 'reportes:tareas_excel' %}?estado=pendiente" class="btn btn-outline-success">
+                        <i class="bi bi-download"></i> Solo Tareas Pendientes
+                    </a>
+                    
+                    <a href="{% url 'reportes:tareas_excel' %}?estado=en_progreso" class="btn btn-outline-success">
+                        <i class="bi bi-download"></i> Solo Tareas En Progreso
+                    </a>
+                </div>
+                
+                <hr>
+                
+                <h6>Reporte General</h6>
+                <p class="text-muted">Exporta un archivo Excel con múltiples hojas: proyectos y tareas</p>
+                <div class="d-grid">
+                    <a href="{% url 'reportes:general_excel' %}" class="btn btn-success">
+                        <i class="bi bi-download"></i> Descargar Reporte General
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información adicional -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5><i class="bi bi-lightbulb"></i> Información</h5>
+            </div>
+            <div class="card-body">
+                <h6>Tipos de Reportes Disponibles:</h6>
+                <ul>
+                    <li><strong>PDF Individual:</strong> Información detallada de un proyecto específico incluyendo todas sus tareas, estadísticas y progreso.</li>
+                    <li><strong>Excel de Tareas:</strong> Listado completo de tareas con todos sus detalles en formato tabular, ideal para análisis en Excel.</li>
+                    <li><strong>Excel General:</strong> Archivo con múltiples hojas conteniendo información de proyectos y tareas.</li>
+                </ul>
+                
+                <h6 class="mt-4">Filtros Disponibles:</h6>
+                <p>Puedes agregar parámetros a las URLs de Excel para filtrar:</p>
+                <ul>
+                    <li><code>?proyecto=ID</code> - Filtrar por proyecto específico</li>
+                    <li><code>?estado=pendiente</code> - Filtrar por estado (pendiente, en_progreso, completada)</li>
+                    <li><code>?fecha_desde=YYYY-MM-DD</code> - Filtrar por fecha de vencimiento desde</li>
+                    <li><code>?fecha_hasta=YYYY-MM-DD</code> - Filtrar por fecha de vencimiento hasta</li>
+                </ul>
+                
+                <p class="text-muted mb-0">
+                    <i class="bi bi-clock-history"></i> Los reportes se generan en tiempo real con la información más actualizada.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
