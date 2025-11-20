@@ -13,7 +13,8 @@ class User(AbstractUser):
         if self.role == 'admin':
             self.is_staff = True
             self.is_superuser = True
-        else:
+        # No quitar permisos si ya los tiene (importante para superusuarios)
+        elif not self.is_superuser and not self.is_staff:
             self.is_staff = False
             self.is_superuser = False
         super().save(*args, **kwargs)
