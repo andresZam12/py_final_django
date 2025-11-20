@@ -18,11 +18,14 @@ def guardar_estado_anterior(sender, instance, **kwargs):
 @receiver(post_save, sender=Tarea)
 def crear_historial_tarea(sender, instance, created, **kwargs):
     """Crear registro en historial cuando se crea o modifica una tarea"""
+    # Obtener el usuario que está haciendo la modificación desde el contexto de la tarea
+    usuario_actual = getattr(instance, '_current_user', instance.creado_por)
+    
     if created:
         # Historial de creación
         Historial.objects.create(
             tarea=instance,
-            usuario=instance.creado_por,
+            usuario=usuario_actual,
             accion=f"Tarea '{instance.titulo}' creada"
         )
         
@@ -39,8 +42,8 @@ def crear_historial_tarea(sender, instance, created, **kwargs):
         if hasattr(instance, '_old_estado') and instance._old_estado != instance.estado:
             Historial.objects.create(
                 tarea=instance,
-                usuario=instance.creado_por,
-                accion=f"Estado cambiado de '{instance.get_estado_display()}' a '{instance.get_estado_display()}'"
+                usuario=usuario_actual,
+                accion=f"Estado cambiado de '{instance._old_estado}' a '{instance.estado}'"
             )
             
             # Notificación de cambio de estado
@@ -57,7 +60,7 @@ def crear_historial_tarea(sender, instance, created, **kwargs):
             if instance.asignado_a:
                 Historial.objects.create(
                     tarea=instance,
-                    usuario=instance.creado_por,
+                    usuario=usuario_actual,
                     accion=f"Tarea asignada a {instance.asignado_a.username}"
                 )
                 

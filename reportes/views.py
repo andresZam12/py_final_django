@@ -149,7 +149,7 @@ def reporte_proyecto_pdf(request, proyecto_id):
                 str(tarea.asignado_a) if tarea.asignado_a else 'Sin asignar',
                 tarea.get_estado_display(),
                 tarea.get_prioridad_display(),
-                tarea.fecha_vencimiento.strftime('%d/%m/%Y'),
+                tarea.fecha_limite.strftime('%d/%m/%Y'),
             ])
         
         tabla_tareas = Table(tareas_data, colWidths=[2*inch, 1.5*inch, 1*inch, 1*inch, 1*inch])
@@ -215,10 +215,10 @@ def reporte_tareas_excel(request):
         tareas = tareas.filter(estado=estado)
     
     if fecha_desde:
-        tareas = tareas.filter(fecha_vencimiento__gte=fecha_desde)
+        tareas = tareas.filter(fecha_limite__gte=fecha_desde)
     
     if fecha_hasta:
-        tareas = tareas.filter(fecha_vencimiento__lte=fecha_hasta)
+        tareas = tareas.filter(fecha_limite__lte=fecha_hasta)
     
     tareas = tareas.order_by('-fecha_creacion')
     
@@ -252,7 +252,7 @@ def reporte_tareas_excel(request):
             str(tarea.asignado_a) if tarea.asignado_a else 'Sin asignar',
             tarea.get_estado_display(),
             tarea.get_prioridad_display(),
-            tarea.fecha_vencimiento.strftime('%d/%m/%Y'),
+            tarea.fecha_limite.strftime('%d/%m/%Y'),
             tarea.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
         ])
     
@@ -317,7 +317,7 @@ def reporte_general_excel(request):
             str(tarea.asignado_a) if tarea.asignado_a else 'Sin asignar',
             tarea.get_estado_display(),
             tarea.get_prioridad_display(),
-            tarea.fecha_vencimiento.strftime('%d/%m/%Y'),
+            tarea.fecha_limite.strftime('%d/%m/%Y'),
         ])
     
     # Aplicar estilos a ambas hojas

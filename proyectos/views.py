@@ -233,6 +233,8 @@ class TareaCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
     def form_valid(self, form):
         # Asignar el usuario actual como creador de la tarea
         form.instance.creado_por = self.request.user
+        # Pasar el usuario actual al modelo para el historial
+        form.instance._current_user = self.request.user
         messages.success(self.request, 'Tarea creada exitosamente')
         return super().form_valid(form)
 
@@ -263,6 +265,8 @@ class TareaUpdateView(LoginRequiredMixin, TareaOwnerOrAdminMixin, UpdateView):
         return reverse_lazy('proyectos:tarea_detail', kwargs={'pk': self.object.pk})
     
     def form_valid(self, form):
+        # Pasar el usuario actual al modelo para el historial
+        form.instance._current_user = self.request.user
         messages.success(self.request, 'Tarea actualizada exitosamente')
         return super().form_valid(form)
 
