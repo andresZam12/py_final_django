@@ -18,7 +18,8 @@ try:
         user = User.objects.create_superuser(
             username='admin',
             email='admin@example.com',
-            password='admin123'
+            password='admin123',
+            role='admin'  # Campo requerido por el modelo personalizado
         )
         print('✓ Superusuario creado exitosamente: admin / admin123')
     else:
