@@ -42,6 +42,10 @@ class ProyectoViewSet(viewsets.ModelViewSet):
     ordering_fields = ['fecha_inicio', 'fecha_fin', 'nombre']
     ordering = ['-fecha_inicio']
     
+    def perform_create(self, serializer):
+        """Asignar automáticamente el usuario actual como creador"""
+        serializer.save(creado_por=self.request.user)
+    
     @action(detail=True, methods=['get'])
     def tareas(self, request, pk=None):
         """
@@ -80,6 +84,13 @@ class TareaViewSet(viewsets.ModelViewSet):
     search_fields = ['titulo', 'descripcion']
     ordering_fields = ['fecha_limite', 'prioridad', 'fecha_creacion']
     ordering = ['-fecha_creacion']
+    
+    def perform_create(self, serializer):
+        """Asignar automáticamente el usuario actual como creador"""
+        tarea = serializer.save(creado_por=self.request.user)
+        # Pasar el usuario actual para el historial
+        tarea._current_user = self.request.user
+        tarea.save()
     
     def get_queryset(self):
         """
@@ -129,6 +140,10 @@ class ComentarioViewSet(viewsets.ModelViewSet):
     search_fields = ['contenido']
     ordering_fields = ['fecha_creacion']
     ordering = ['-fecha_creacion']
+    
+    def perform_create(self, serializer):
+        """Asignar automáticamente el usuario actual como autor"""
+        serializer.save(autor=self.request.user)
 
 
 class HistorialViewSet(viewsets.ReadOnlyModelViewSet):
